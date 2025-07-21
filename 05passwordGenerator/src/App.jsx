@@ -1,65 +1,56 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
 function App() {
-  const [length, setLength] = useState(0);
-  const [numberAllowed, setNumberAllowed] = useState(false);
-  const [characterAllowed, setCharacterAllowed] = useState(false);
+  const passwordRef = useRef(null);
   const [password, setPassword] = useState("");
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [strength, setStrength] = useState("");
-
-  //useRef hook
-  const passwordRef = useRef(null)
-
-  // To generate the password
+  const [length, setLength] = useState(0);
+  const [characterAllowed, setCharacterAllowed] = useState(false);
+  const [numberAllowed, setNumberAllowed] = useState(false);
+  const [copySuccess, setcopySuccess] = useState(false);
+  const [strength, setStrength] = useState();
   const passwordGenerator = useCallback(() => {
-    let pass = "";
-    let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    if (numberAllowed) str += "0123456789";
-    if (characterAllowed) str += "!@#$%^&*()_+-=[]{}|;:',.<>?/~`";
-
-    for (let i = 0; i < length; i++) {
-      let char = Math.floor(Math.random() * str.length);
-      pass += str.charAt(char);
+    let pass = ""
+    let string = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    if(numberAllowed) string += "0123456789";
+    if(characterAllowed) string += "!@#$%&";
+    for(let i = 0;i<length;i++){
+      pass += string.charAt(Math.floor(Math.random()*string.length))
     }
     setPassword(pass);
-  }, [length, numberAllowed, characterAllowed, setPassword]);
-
+  },[length,numberAllowed,characterAllowed,setPassword])
+  
   useEffect(() => {
-    let score = 0;
-    if(length >= 3) score++;
-    if(length >= 4) score++;
-    if(length >= 5) score++;
-    if(length >= 6) score++;
-    if(length >= 7) score++;
-    if(length >= 8) score++;
-    if(numberAllowed) score++;
-    if(characterAllowed) score++;
+    let passwordStrength = 0;
+    if(length >= 3) passwordStrength++;
+    if(length >= 4) passwordStrength++;
+    if(length >= 5) passwordStrength++;
+    if(length >= 6) passwordStrength++;
+    if(length >= 7) passwordStrength++;
+    if(length >= 8) passwordStrength++;
+    if(numberAllowed) passwordStrength++;
+    if(characterAllowed) passwordStrength++;
+    if(passwordStrength < 3) setStrength("Weak");
+    if(passwordStrength >3 && passwordStrength< 8) setStrength("Medium");
+    if(passwordStrength >= 8) setStrength("Strong");
+  },[length, numberAllowed, characterAllowed])
 
-    if (score <= 3) setStrength(" Weak");
-    else if(score >= 3 && score < 8) setStrength(" Medium");
-    else setStrength(" Strong");
-  },[length, numberAllowed, characterAllowed]);
+  const copyPassword = useCallback(() =>{
+      passwordRef.current?.select();
+      window.navigator.clipboard.writeText(password);
+      setcopySuccess(true);
+      setTimeout(() => {
+        setcopySuccess(false);
+      },1500)
+    },[password])
 
-  const copyPassword = useCallback(() => {
-    passwordRef.current?.select();
-    // passwordRef.current?.setSelectionRange(0,4);
-    window.navigator.clipboard.writeText(password);
-    setCopySuccess(true);
-    setTimeout(() => {
-      setCopySuccess(false);
-    },1500);
-  },[password])
-
-  // Auto regenrate with useEffect()length, numberAllowed, characterAllowed
-  useEffect(() => {
-    passwordGenerator();
-  }, [length, numberAllowed, characterAllowed, passwordGenerator]);
+    useEffect(() => {
+      passwordGenerator();
+    },[length, numberAllowed, characterAllowed, passwordGenerator])
 
   return (
     <>
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-full max-w-md mx-auto shadow-md rounded-lg py-4 px-4 my-12 text-orange-500 bg-gray-700">
+      <div className="w-full max-w-[450px] aspect-square mx-auto shadow-md rounded-lg py-4 px-4 my-12 text-orange-500 bg-gray-700 flex flex-col justify-between">
           <h1 className="text-white text-center my-3">Password Generator</h1>
           <div className="flex shadow rounded-lg overflow-hidden mb-4">
             <input
@@ -123,19 +114,21 @@ function App() {
             )}
           <p
             className={`text-sm mb-2 font-semibold text-center ${
-              strength === " Strong"
+              strength === "Strong"
                 ? "text-green-400"
-                : strength === " Medium"
+                : strength === "Medium"
                 ? "text-yellow-400"
                 : "text-red-400"
             }`}
           >
-            Strength: {strength.charAt(0).toUpperCase() + strength.slice(1)}
+            Strength: {strength}
           </p>
+          <p className="text-white"><span className="text-red-400">Note: </span>Choose a Character and Number to make your password Strong</p>
         </div>
       </div>
     </>
   );
 }
+
 
 export default App;
